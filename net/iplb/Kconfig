@@ -1,0 +1,9 @@
+#
+# IP encapsulation based Load Balancing (IPLB)
+#
+
+menuconfig IPLB
+        tristate "IP encapsulation based Load Balancing"
+        depends on INET
+        ---help---
+          IP encapsulation based Load Balancing

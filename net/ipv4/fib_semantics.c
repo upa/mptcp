@@ -33,6 +33,10 @@
 #include <linux/init.h>
 #include <linux/slab.h>
 
+#ifdef CONFIG_IP_ROUTE_MULTIPATH_HASHONLY
+#include <linux/hash.h>	/* hash_32() */
+#endif
+
 #include <net/arp.h>
 #include <net/ip.h>
 #include <net/protocol.h>
@@ -1330,4 +1334,31 @@ void fib_select_multipath(struct fib_result *res)
 	res->nh_sel = 0;
 	spin_unlock_bh(&fib_multipath_lock);
 }
+#endif
+
+#ifdef CONFIG_IP_ROUTE_MULTIPATH_HASHONLY
+/* added by upa@haeena.net
+ * If hash-only decides next hop for a flow by hash of 5 tuple. there
+ * is no weight based balancing (like commodity hardware routers).
+ */
+
+static inline unsigned long fib_calculate_hash (struct flowi4 * fl4)
+{
+	return hash_32 (fl4->saddr + fl4->daddr + fl4->flowi4_proto +
+			fl4->fl4_sport + fl4->fl4_dport, 8);
+}
+
+void
+fib_select_multipath_hashonly(struct fib_result *res,
+			      const struct flowi4 * fl4)
+{
+	unsigned long key;
+	struct fib_info *fi = res->fi;
+
+	key = fib_calculate_hash (fl4);
+	res->nh_sel = key % fi->fib_nhs;
+
+	return;
+}
+
 #endif

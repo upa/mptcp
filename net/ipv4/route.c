@@ -1625,13 +1625,35 @@ static int ip_mkroute_input(struct sk_buff *skb,
 			    __be32 daddr, __be32 saddr, u32 tos)
 {
 #ifdef CONFIG_IP_ROUTE_MULTIPATH
-	if (res->fi && res->fi->fib_nhs > 1)
+	if (res->fi && res->fi->fib_nhs > 1) {
+#ifdef CONFIG_IP_ROUTE_MULTIPATH_HASHONLY
+		fib_select_multipath_hashonly(res, fl4);
+#else
 		fib_select_multipath(res);
+#endif
+	}
 #endif
 
 	/* create a routing cache entry */
 	return __mkroute_input(skb, res, in_dev, daddr, saddr, tos);
 }
+
+#ifdef CONFIG_IP_ROUTE_MULTIPATH_HASHONLY
+static inline void
+ip_rt_build_fl4_port (struct sk_buff *skb, struct flowi4 * fl4)
+{
+	struct iphdr *ip = (struct iphdr *) skb_network_header (skb);
+
+	if (ip->protocol == IPPROTO_TCP) {
+		fl4->fl4_sport = tcp_hdr (skb)->source;
+		fl4->fl4_dport = tcp_hdr (skb)->dest;
+	} else if (ip->protocol == IPPROTO_UDP) {
+		fl4->fl4_sport = udp_hdr (skb)->source;
+		fl4->fl4_dport = udp_hdr (skb)->dest;
+	}
+	return;
+}
+#endif
 
 /*
  *	NOTE. We drop all the packets that has local source
@@ -1703,6 +1725,9 @@ static int ip_route_input_slow(struct sk_buff *skb, __be32 daddr, __be32 saddr,
 	fl4.flowi4_scope = RT_SCOPE_UNIVERSE;
 	fl4.daddr = daddr;
 	fl4.saddr = saddr;
+#ifdef CONFIG_IP_ROUTE_MULTIPATH_HASHONLY
+	ip_rt_build_fl4_port (skb, &fl4);
+#endif
 	err = fib_lookup(net, &fl4, &res);
 	if (err != 0) {
 		if (!IN_DEV_FORWARD(in_dev))
@@ -2157,9 +2182,13 @@ struct rtable *__ip_route_output_key(struct net *net, struct flowi4 *fl4)
 	}
 
 #ifdef CONFIG_IP_ROUTE_MULTIPATH
-	if (res.fi->fib_nhs > 1 && fl4->flowi4_oif == 0)
+	if (res.fi->fib_nhs > 1 && fl4->flowi4_oif == 0) {
+#ifdef CONFIG_IP_ROUTE_MULTIPATH_HASHONLY
+		fib_select_multipath_hashonly(&res, fl4);
+#else
 		fib_select_multipath(&res);
-	else
+#endif
+	} else
 #endif
 	if (!res.prefixlen &&
 	    res.table->tb_num_default > 1 &&

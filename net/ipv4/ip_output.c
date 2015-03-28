@@ -335,6 +335,17 @@ int ip_queue_xmit(struct sk_buff *skb, struct flowi *fl)
 	if (rt != NULL)
 		goto packet_routed;
 
+#ifdef CONFIG_IP_ROUTE_MULTIPATH_HASHONLY
+	iph = ip_hdr (skb);
+	if (iph->protocol == IPPROTO_TCP) {
+		fl4->fl4_sport = tcp_hdr (skb)->source;
+		fl4->fl4_dport = tcp_hdr (skb)->dest;
+	} else if (iph->protocol == IPPROTO_UDP) {
+		fl4->fl4_sport = udp_hdr (skb)->source;
+		fl4->fl4_dport = udp_hdr (skb)->dest;
+	}
+#endif
+
 	/* Make sure we can route this packet. */
 	rt = (struct rtable *)__sk_dst_check(sk, 0);
 	if (rt == NULL) {

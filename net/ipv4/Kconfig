@@ -90,6 +90,17 @@ config IP_ROUTE_MULTIPATH
 	  equal "cost" and chooses one of them in a non-deterministic fashion
 	  if a matching packet arrives.
 
+config IP_ROUTE_MULTIPATH_HASHONLY
+	bool "IP: ECMP hash only for flows"
+	depends on IP_ROUTE_MULTIPATH
+	help
+	  Normally, IP_ROUTE_MULTIPATH load balance single flow to multiple
+	  next hops. However, it causes packet reodering so that commodity
+	  hardware routers using only hash to decide next hop for individual
+	  flows. This option emulates this behavior. A next hop for a flow
+	  is decided by hash value for 5-tuple of the flow, and the next hop
+	  have been never changed.
+
 config IP_ROUTE_VERBOSE
 	bool "IP: verbose route monitoring"
 	depends on IP_ADVANCED_ROUTER

@@ -292,6 +292,8 @@ int fib_sync_down_dev(struct net_device *dev, int force);
 int fib_sync_down_addr(struct net *net, __be32 local);
 int fib_sync_up(struct net_device *dev);
 void fib_select_multipath(struct fib_result *res);
+void fib_select_multipath_hashonly(struct fib_result *res,
+                                   const struct flowi4 * fl4);
 
 /* Exported by fib_trie.c */
 void fib_trie_init(void);

@@ -14,7 +14,7 @@ struct ndiffports_priv {
 	struct mptcp_cb *mpcb;
 };
 
-static int num_subflows __read_mostly = 8;
+static int num_subflows __read_mostly = 4;
 module_param(num_subflows, int, 0644);
 MODULE_PARM_DESC(num_subflows, "choose the number of subflows per MPTCP connection");
 

@@ -97,7 +97,7 @@ static void timer_trampoline (void *context)
  */
 void add_timer(struct timer_list *timer)
 {
-  sim_assert (!timer_pending (timer));
+  //sim_assert (!timer_pending (timer));
   __u64 delay_ns = 0;
   if (timer->expires <= jiffies)
     {

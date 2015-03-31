@@ -45,7 +45,8 @@ static void run_timer_softirq(struct softirq_action *h)
       unsigned long data;
       fn = timer->function;
       data = timer->data;
-      sim_assert (timer->base == 0);
+      //sim_assert (timer->base == 0);
+      timer->base = 0;
       //list_del (&timer->entry);
       //timer->entry.next = NULL;
       //fn (data);
@@ -53,6 +54,7 @@ static void run_timer_softirq(struct softirq_action *h)
 	{
 	  list_del (&timer->entry);
           timer->entry.next = NULL;
+	  timer->base = 0;
           fn (data);
         }
     }
@@ -135,6 +137,7 @@ int del_timer(struct timer_list *timer)
   if (timer->base != 0)
     {
       sim_event_cancel (timer->base);
+      timer->base = NULL;
       retval = 1;
     }
   else

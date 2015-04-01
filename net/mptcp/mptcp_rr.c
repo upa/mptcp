@@ -3,7 +3,7 @@
 #include <linux/module.h>
 #include <net/mptcp.h>
 
-static unsigned char num_segments __read_mostly = 1;
+static unsigned char num_segments __read_mostly = 8;
 module_param(num_segments, byte, 0644);
 MODULE_PARM_DESC(num_segments, "The number of consecutive segments that are part of a burst");
 
